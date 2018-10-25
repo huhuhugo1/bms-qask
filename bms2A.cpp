@@ -37,41 +37,50 @@ int main(int argc, char** argv) {
         return 1; 
     }
 
-    // Create output file
-    SndfileHandle outputFile = SndfileHandle("sine.waw", SFM_WRITE, FORMAT, CHANELS, SAMPLE_RATE);
-
-    // Write sync sequence
-    outputFile.write(sine[0].data(), PERIOD_SIZE);
-    outputFile.write(sine[3].data(), PERIOD_SIZE);
-    outputFile.write(sine[0].data(), PERIOD_SIZE);
-    outputFile.write(sine[3].data(), PERIOD_SIZE);
+    // Prepare output file name
+    std::string output_file_name = argv[1];
+    try {
+        output_file_name.replace(output_file_name.size() - 4, 4, ".wav");
+    } catch (std::exception e) {
+        std::cerr << "Invalid input file name!" << std::endl;
+        return 1;
+    }
 
     // Open input file for read
-    auto file = fopen(argv[1], "r");
-    if (!file) {
+    auto input_file = fopen(argv[1], "r");
+    if (!input_file) {
         std::cerr << "Unable to open input file!" << std::endl;
         return 1;
     }
 
+    // Create output file
+    SndfileHandle output_file = SndfileHandle(output_file_name, SFM_WRITE, FORMAT, CHANELS, SAMPLE_RATE);
+
+    // Write sync sequence
+    output_file.write(sine[0].data(), PERIOD_SIZE);
+    output_file.write(sine[3].data(), PERIOD_SIZE);
+    output_file.write(sine[0].data(), PERIOD_SIZE);
+    output_file.write(sine[3].data(), PERIOD_SIZE);
+
     // In each iteration read two bits and write to file one period of sine of corespondig amplitude level
     while(true) {
         uint8_t level = 0;
-        auto c = fgetc(file);
+        auto c = fgetc(input_file);
         if (c == EOF)
             break;
         else if (c == '1')
             level += 2;
 
-        c = fgetc(file);
+        c = fgetc(input_file);
         if (c == EOF)
             break;
         else if (c == '1')
             level += 1;
 
-        outputFile.write(sine[level].data(), PERIOD_SIZE);
+        output_file.write(sine[level].data(), PERIOD_SIZE);
     }
 
     // Close file
-    fclose(file);
+    fclose(input_file);
     return 0;
 }
