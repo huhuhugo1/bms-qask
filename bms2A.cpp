@@ -37,21 +37,19 @@ int main(int argc, char** argv) {
         return 1; 
     }
 
-    // Prepare output file name
-    std::string output_file_name = argv[1];
-    try {
-        output_file_name.replace(output_file_name.size() - 4, 4, ".wav");
-    } catch (std::exception e) {
-        std::cerr << "Invalid input file name!" << std::endl;
-        return 1;
-    }
-
     // Open input file for read
     auto input_file = fopen(argv[1], "r");
     if (!input_file) {
         std::cerr << "Unable to open input file!" << std::endl;
         return 1;
     }
+
+    // Prepare output file name
+    std::string output_file_name = argv[1];
+    auto pos = output_file_name.rfind('.');
+    if (pos != std::string::npos)
+        output_file_name.erase(pos);
+    output_file_name += ".wav";
 
     // Create output file
     SndfileHandle output_file = SndfileHandle(output_file_name, SFM_WRITE, FORMAT, CHANELS, SAMPLE_RATE);
